@@ -1,0 +1,28 @@
+{
+  "name": "physics-playground",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "next",
+    "build": "next build",
+    "start": "next start"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/arellaTV/physics-playground.git"
+  },
+  "author": "Jay Arella",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/arellaTV/physics-playground/issues"
+  },
+  "homepage": "https://github.com/arellaTV/physics-playground#readme",
+  "dependencies": {
+    "next": "^7.0.2",
+    "pixi.js": "^4.8.5",
+    "react": "^16.7.0",
+    "react-dom": "^16.7.0",
+    "react-pixi-fiber": "^0.7.0"
+  }
+}
