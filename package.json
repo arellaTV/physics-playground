@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/arellaTV/physics-playground#readme",
   "dependencies": {
+    "matter-js": "^0.14.2",
     "next": "^7.0.2",
     "pixi.js": "^4.8.5",
     "react": "^16.7.0",
