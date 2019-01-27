@@ -12,6 +12,7 @@ class Character extends React.Component {
         this.state = {
             direction: 'right',
             height,
+            motionKeydown: { right: false, left: false },
             position,
             rotation: 0,
             scale: { x: 1, y: 1 },
@@ -37,20 +38,27 @@ class Character extends React.Component {
         this.props.app.ticker.add(this.animate);
 
         window.addEventListener("keydown", (event) => {
+            // Right
             if (event.keyCode == 39) {
-                Body.setVelocity(this.body, { x: 2.9, y: 0 });
-                this.setState({ direction: 'right', moving: true });
+                this.setState({ motionKeydown: { right: true }, direction: 'right' });
             }
+            // Left
             if (event.keyCode == 37) {
-                Body.setVelocity(this.body, { x: -2.9, y: 0 });
-                this.setState({ direction: 'left', moving: true });
+                this.setState({ motionKeydown: { left: true }, direction: 'left' });
             }
-            if (event.keyCode == 32) {
-                Body.setAngularVelocity(this.body, 0.01);
-            }
+            // Space
+            if (event.keyCode == 32) {}
         });
 
         window.addEventListener("keyup", (event) => {
+            // Right
+            if (event.keyCode == 39) {
+                this.setState({ motionKeydown: { right: false } });
+            }
+            // Left
+            if (event.keyCode == 37) {
+                this.setState({ motionKeydown: { left: false } });
+            }
         });
     }
 
@@ -59,41 +67,48 @@ class Character extends React.Component {
     }
 
     animate = delta => {
-        Engine.update(this.props.engine);
+        Engine.update(this.props.engine, 1000 / 60);
 
-        let scale = { x: 1, y: 1 };
-        let reversing = true;
+        if (this.state.motionKeydown.right && this.state.direction === "right") {
+            Body.setVelocity(this.body, { x: 6 * delta, y: 0 });
+        } else if (this.state.motionKeydown.left && this.state.direction === "left") {
+            Body.setVelocity(this.body, { x: -6 * delta, y: 0 });
+        }
+
+        // Contants for left and right scales
+        const LEFT_SCALE = { x: -1, y: 1 };
+        const RIGHT_SCALE = { x: 1, y: 1 };
+
         let direction = this.state.direction;
+        let position = { x: this.body.position.x, y: this.body.position.y };
+        let rotation = this.body.angle;
+        let reversing = true;
+        let scale = { x: 1, y: 1 };
 
         if (this.body.velocity.x > 0.1) {
-            console.log('right');
             direction = 'right';
-            scale = { x: 1, y: 1 };
+            scale = RIGHT_SCALE;
             reversing = false;
             this.currentAnimationFrames = this.run;
         } else if (this.body.velocity.x < -0.1) {
-            console.log('left');
             direction = 'left';
-            scale = { x: -1, y: 1 };
+            scale = LEFT_SCALE;
             reversing = false;
             this.currentAnimationFrames = this.run;
         } else if (this.body.velocity.x < 0.1 && this.body.velocity.x > -0.1) {
             this.currentAnimationFrames = this.idle;
             if (direction === "right") {
-                scale = { x: 1, y: 1 };
+                scale = RIGHT_SCALE;
             } else if (direction === "left") {
-                scale = { x: -1, y: 1 };
+                scale = LEFT_SCALE;
             }
         }
 
         this.setState({
             direction,
-            position: {
-                x: this.body.position.x,
-                y: this.body.position.y
-            },
+            position,
             reversing,
-            rotation: this.body.angle,
+            rotation,
             scale
         });
     };
