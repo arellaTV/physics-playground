@@ -1,5 +1,6 @@
 import dynamic from 'next/dynamic';
 const MatterJS = dynamic(import('../../../game-views/examples/matter-js'), { ssr: false })
+import '../../../utility/polyfills/padStart';
 
 class GameView extends React.Component {
     render() {

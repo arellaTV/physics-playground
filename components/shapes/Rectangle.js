@@ -5,13 +5,22 @@ const TYPE = "Rectangle";
 export const behavior = {
     customDisplayObject: props => new PIXI.Graphics(),
     customApplyProps: function(instance, oldProps, newProps) {
-        const { fill, pivot, position, width, height } = newProps;
+        const { fill, position, rotation, width, height } = newProps;
         const x = position.x;
         const y = position.y;
+        const pivot = {
+            x: width / 2,
+            y: height / 2     
+        }
         instance.clear();
         instance.beginFill(fill);
-        instance.drawRect(x, y, width, height);
+        instance.drawRect(0, 0, width, height);
         instance.endFill();
+        instance.height = height;
+        instance.width = width;
+        instance.pivot = pivot;
+        instance.position = position;
+        instance.rotation = rotation || 0;
     }
 };
 export default CustomPIXIComponent(behavior, TYPE);

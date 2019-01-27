@@ -1,6 +1,6 @@
-import { Fragment } from 'react';
-import { AppContext, Sprite, Stage } from 'react-pixi-fiber';
+import { AppContext, Container, Sprite, Stage } from 'react-pixi-fiber';
 import { Body, Bodies, Engine, World } from 'matter-js';
+import AnimatedSprite from '../../../components/extras/AnimatedSprite';
 import Rectangle from '../../../components/shapes/Rectangle';
 
 class Character extends React.Component {
@@ -10,10 +10,27 @@ class Character extends React.Component {
         this.body = Bodies.rectangle(position.x, position.y, width, height);
         World.add(engine.world, [this.body]);
         this.state = {
+            direction: 'right',
             height,
             position,
+            rotation: 0,
+            scale: { x: 1, y: 1 },
             width
         }
+
+        this.idle = [];
+        for (var i = 1; i <= 5; i++) {
+            let paddedIndex = i.toString().padStart(4, '0');
+            this.idle.push(PIXI.Texture.from(`/static/idle/cuphead_idle_${paddedIndex}.png`));
+        }
+
+        this.run = [];
+        for (var i = 1; i <= 16; i++) {
+            let paddedIndex = i.toString().padStart(4, '0');
+            this.run.push(PIXI.Texture.from(`/static/run/cuphead_run_${paddedIndex}.png`));
+        }
+
+        this.currentAnimationFrames = this.idle;
     }
     
     componentDidMount() {
@@ -21,11 +38,19 @@ class Character extends React.Component {
 
         window.addEventListener("keydown", (event) => {
             if (event.keyCode == 39) {
-                Body.setVelocity(this.body, { x: 2, y: 0 });
+                Body.setVelocity(this.body, { x: 2.9, y: 0 });
+                this.setState({ direction: 'right', moving: true });
             }
             if (event.keyCode == 37) {
-                Body.setVelocity(this.body, { x: -2, y: 0 });
+                Body.setVelocity(this.body, { x: -2.9, y: 0 });
+                this.setState({ direction: 'left', moving: true });
             }
+            if (event.keyCode == 32) {
+                Body.setAngularVelocity(this.body, 0.01);
+            }
+        });
+
+        window.addEventListener("keyup", (event) => {
         });
     }
 
@@ -35,31 +60,59 @@ class Character extends React.Component {
 
     animate = delta => {
         Engine.update(this.props.engine);
+
+        let scale = { x: 1, y: 1 };
+        let reversing = true;
+        let direction = this.state.direction;
+
+        if (this.body.velocity.x > 0.1) {
+            console.log('right');
+            direction = 'right';
+            scale = { x: 1, y: 1 };
+            reversing = false;
+            this.currentAnimationFrames = this.run;
+        } else if (this.body.velocity.x < -0.1) {
+            console.log('left');
+            direction = 'left';
+            scale = { x: -1, y: 1 };
+            reversing = false;
+            this.currentAnimationFrames = this.run;
+        } else if (this.body.velocity.x < 0.1 && this.body.velocity.x > -0.1) {
+            this.currentAnimationFrames = this.idle;
+            if (direction === "right") {
+                scale = { x: 1, y: 1 };
+            } else if (direction === "left") {
+                scale = { x: -1, y: 1 };
+            }
+        }
+
         this.setState({
+            direction,
             position: {
                 x: this.body.position.x,
                 y: this.body.position.y
-            }
+            },
+            reversing,
+            rotation: this.body.angle,
+            scale
         });
     };
 
     render() {
         const state = this.state;
 
-        const rectangleState = {
-            position: {
-                x: state.position.x - (state.width / 2),
-                y: state.position.y - (state.height / 2)
-            },
-            width: state.width,
-            height: state.height
-        }
-
         return (
-            <Fragment>
-                <Rectangle fill={0x4286f4} {...rectangleState} />
-                <Sprite anchor={{x:0.5, y:0.5}} texture={PIXI.Texture.fromImage('/static/character.png')} {...state} />
-            </Fragment>
+            <Container>
+                <Rectangle fill={0x4286f4} {...state} />
+                <AnimatedSprite
+                    anchor={{x:0.5, y:0.5}}
+                    animationSpeed={0.4}
+                    reversing={true}
+                    textures={this.currentAnimationFrames}
+                    scale={this.state.scale}
+                    {...state}
+                />
+            </Container>
         )
     }
 }
@@ -86,17 +139,8 @@ class Floor extends React.Component {
     
     render() {
         const props = this.props;
-        const rectangleProps = {
-            position: {
-                x: props.position.x - (props.width / 2),
-                y: props.position.y - (props.height / 2)
-            },
-            width: props.width,
-            height: props.height,
-            fill: props.fill
-        }
         return (
-            <Rectangle {...rectangleProps} />
+            <Rectangle {...props} />
         )
     }
 }
@@ -133,7 +177,7 @@ class GameView extends React.Component {
                             fill={0xFF3300}
                             height={200}
                             position={{ x: 540, y: 700 }}
-                            width={1080}
+                            width={3000}
                         />
                     )}
                 </AppContext.Consumer>
@@ -142,9 +186,9 @@ class GameView extends React.Component {
                         <Character
                             app={app}
                             engine={this.engine}
-                            height={480}
+                            height={155}
                             position={POSITION}
-                            width={257}
+                            width={98}
                         />
                     )}
                 </AppContext.Consumer>
