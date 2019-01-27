@@ -8,14 +8,17 @@ class GameView extends React.Component {
         super();
         this.engine = Engine.create();
     }
+    
     componentDidMount() {
         window.addEventListener('resize', this.updateDimensions);
         PIXI.settings.SCALE_MODE = 1;
         Engine.run(this.engine);
     }
+    
     updateDimensions = () => {
         this.setState({ height: window.innerHeight, width: window.innerWidth });
     }
+    
     render() {
         const WIDTH = window.innerWidth;
         const HEIGHT = window.innerHeight;
