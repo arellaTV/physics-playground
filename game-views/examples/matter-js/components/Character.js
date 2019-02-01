@@ -1,5 +1,5 @@
 import { Container } from 'react-pixi-fiber';
-import { Body, Bodies, Engine, World } from 'matter-js';
+import { Body, Bodies, Engine, Events, World } from 'matter-js';
 import AnimatedSprite from '../../../../components/extras/AnimatedSprite';
 import Rectangle from '../../../../components/shapes/Rectangle';
 
@@ -8,11 +8,15 @@ class Character extends React.Component {
         super(props);
         const { engine, height, position, width } = props;
         this.body = Bodies.rectangle(position.x, position.y, width, height);
+        this.body.density = 100;
+        Body.setInertia(this.body, Infinity);
         World.add(engine.world, [this.body]);
         this.state = {
             direction: 'right',
             height,
-            motionKeydown: { right: false, left: false },
+            motionLeftKeydown: false,
+            motionRightKeydown: false,
+            motionUpKeydown: false,
             position,
             rotation: 0,
             scale: { x: 1, y: 1 },
@@ -40,24 +44,30 @@ class Character extends React.Component {
         window.addEventListener("keydown", (event) => {
             // Right
             if (event.keyCode == 39) {
-                this.setState({ motionKeydown: { right: true }, direction: 'right' });
+                this.setState({ motionRightKeydown: true, direction: 'right' });
             }
             // Left
             if (event.keyCode == 37) {
-                this.setState({ motionKeydown: { left: true }, direction: 'left' });
+                this.setState({ motionLeftKeydown: true, direction: 'left' });
             }
             // Space
-            if (event.keyCode == 32) {}
+            if (event.keyCode == 32) {
+                this.setState({ motionUpKeydown: true });
+            }
         });
 
         window.addEventListener("keyup", (event) => {
             // Right
             if (event.keyCode == 39) {
-                this.setState({ motionKeydown: { right: false } });
+                this.setState({ motionRightKeydown: false });
             }
             // Left
             if (event.keyCode == 37) {
-                this.setState({ motionKeydown: { left: false } });
+                this.setState({ motionLeftKeydown: false });
+            }
+            // Space
+            if (event.keyCode == 32) {
+                this.setState({ motionUpKeydown: false });
             }
         });
     }
@@ -67,12 +77,20 @@ class Character extends React.Component {
     }
 
     animate = delta => {
-        Engine.update(this.props.engine, 1000 / 60);
+        Engine.update(this.props.engine, delta);
 
-        if (this.state.motionKeydown.right && this.state.direction === "right") {
-            Body.setVelocity(this.body, { x: 6 * delta, y: 0 });
-        } else if (this.state.motionKeydown.left && this.state.direction === "left") {
-            Body.setVelocity(this.body, { x: -6 * delta, y: 0 });
+        const SPEED_CONSTANT = 0.060;
+        if (this.state.motionRightKeydown === true) {
+            // Body.setVelocity(this.body, { x: SPEED_CONSTANT, y: 0 });
+            this.body.force.x = SPEED_CONSTANT;
+        } else if (this.state.motionLeftKeydown === true) {
+            this.body.force.x = -SPEED_CONSTANT;
+            // Body.setVelocity(this.body, { x: -SPEED_CONSTANT, y: 0 });
+        }
+
+        if (this.state.motionUpKeydown === true) {
+            console.log('pressing up');
+            // Body.applyForce(this.body, this.body.position, { x: 0, y: -0.1 });
         }
 
         // Contants for left and right scales

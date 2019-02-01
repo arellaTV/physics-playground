@@ -38,7 +38,7 @@ class GameView extends React.Component {
                             fill={0xFF3300}
                             height={200}
                             position={{ x: 540, y: 700 }}
-                            width={3000}
+                            width={2000}
                         />
                     )}
                 </AppContext.Consumer>
